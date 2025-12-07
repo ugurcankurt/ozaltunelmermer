@@ -157,6 +157,33 @@ export default function AIVisualizer() {
         setError("");
     };
 
+    // Helper to resize/compress image before sending to API
+    // Vercel Serverless Functions have a 4.5MB body limit
+    const resizeImage = (base64Str: string, maxWidth = 1024): Promise<string> => {
+        return new Promise((resolve) => {
+            const img = document.createElement('img');
+            img.src = base64Str;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                // Compress to JPEG with 0.8 quality
+                resolve(canvas.toDataURL('image/jpeg', 0.8));
+            };
+        });
+    };
+
     const handleProcess = async () => {
         if (!uploadedImage || !selectedStone) return;
 
@@ -165,6 +192,9 @@ export default function AIVisualizer() {
         setAiDescription("");
 
         try {
+            // Resize image to avoid Vercel 4.5MB limit (413 Error)
+            const compressedImage = await resizeImage(uploadedImage);
+
             // Convert selected stone image path to base64
             let stoneImageBase64 = null;
             if (selectedStoneImage) {
@@ -187,7 +217,7 @@ export default function AIVisualizer() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    imageBase64: uploadedImage,
+                    imageBase64: compressedImage, // Send compressed image
                     stoneName: selectedStoneName,
                     stoneImageBase64: stoneImageBase64
                 }),
