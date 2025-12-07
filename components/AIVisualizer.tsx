@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Upload, X, Loader2, Image as ImageIcon, Sparkles, AlertCircle, Info, Download, RefreshCw, ArrowRight, Camera } from "lucide-react";
 
@@ -86,8 +86,35 @@ export default function AIVisualizer() {
     const [error, setError] = useState<string>("");
     const [activeCollection, setActiveCollection] = useState("pure");
     const [isLightboxOpen, setIsLightboxOpen] = useState(false); // Modal state
+    const [remainingCredits, setRemainingCredits] = useState<number | null>(null); // Daily usage limit (null until loaded)
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null); // Ref for camera input
+
+    const DAILY_LIMIT = 5;
+
+    // Load credits from local storage on mount
+    useEffect(() => {
+        const today = new Date().toISOString().split('T')[0];
+        const storageKey = `ai_credits_${today}`;
+        const stored = localStorage.getItem(storageKey);
+
+        if (stored) {
+            setRemainingCredits(parseInt(stored));
+        } else {
+            // New day or first visit
+            setRemainingCredits(DAILY_LIMIT);
+            localStorage.setItem(storageKey, DAILY_LIMIT.toString());
+        }
+    }, []);
+
+    // Helper to decrement credits
+    const decrementCredits = () => {
+        if (remainingCredits === null) return;
+        const newValue = Math.max(0, remainingCredits - 1);
+        setRemainingCredits(newValue);
+        const today = new Date().toISOString().split('T')[0];
+        localStorage.setItem(`ai_credits_${today}`, newValue.toString());
+    };
 
     // Handles both gallery uploads and camera captures. 
     // Automatically sets the image state upon selection/capture, so no extra "Upload" button is needed.
@@ -189,6 +216,12 @@ export default function AIVisualizer() {
     const handleProcess = async () => {
         if (!uploadedImage || !selectedStone) return;
 
+        // Credit Check
+        if (remainingCredits !== null && remainingCredits <= 0) {
+            setError("Günlük işlem limitiniz (5) dolmuştur. Lütfen yarın tekrar deneyiniz.");
+            return;
+        }
+
         setIsProcessing(true);
         setError("");
         setAiDescription("");
@@ -231,6 +264,9 @@ export default function AIVisualizer() {
                 throw new Error(data.error || "İşlem sırasında hata oluştu");
             }
 
+            // Success - Decrement credits
+            decrementCredits();
+
             if (data.generatedImage) {
                 setResultImage(data.generatedImage);
                 // Scroll to result on mobile
@@ -250,6 +286,7 @@ export default function AIVisualizer() {
         }
     };
 
+    // Reset inputs but keep credits
     const handleReset = () => {
         setUploadedImage(null);
         setSelectedStone(null);
@@ -287,13 +324,39 @@ export default function AIVisualizer() {
             {/* Main Content */}
             <div className="container-custom py-12 px-4">
                 {/* API Info */}
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-8 flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                        <p className="text-green-800 font-medium">AI Görselleştirici Aktif</p>
-                        <p className="text-green-700 text-sm">
-                            Gemini AI entegrasyonu hazır. Mutfak fotoğrafınızı yükleyin ve taş seçin, yapay zeka size önerilerde bulunsun.
-                        </p>
+                <div className="flex flex-col md:flex-row gap-4 mb-8">
+                    <div className="flex-1 bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+                        <Sparkles className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-green-800 font-medium">AI Görselleştirici Aktif</p>
+                            <p className="text-green-700 text-sm">
+                                Gemini AI entegrasyonu hazır.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Credit Counter */}
+                    <div className={`flex-1 rounded-xl p-4 flex items-center gap-3 border ${(remainingCredits ?? 5) > 0
+                            ? "bg-blue-50 border-blue-200"
+                            : "bg-red-50 border-red-200"
+                        }`}>
+                        <div className={`p-2 rounded-full ${(remainingCredits ?? 5) > 0 ? "bg-blue-100" : "bg-red-100"
+                            }`}>
+                            <Info className={`w-5 h-5 ${(remainingCredits ?? 5) > 0 ? "text-blue-600" : "text-red-600"
+                                }`} />
+                        </div>
+                        <div>
+                            <p className={`font-medium ${(remainingCredits ?? 5) > 0 ? "text-blue-800" : "text-red-800"
+                                }`}>
+                                Kalan Hakkınız: <span className="font-bold">{remainingCredits ?? "..."}</span> / {DAILY_LIMIT}
+                            </p>
+                            <p className={`text-sm ${(remainingCredits ?? 5) > 0 ? "text-blue-700" : "text-red-700"
+                                }`}>
+                                {(remainingCredits ?? 5) > 0
+                                    ? "Bugün kullanabileceğiniz işlem sayısı."
+                                    : "Günlük limitiniz doldu. Yarın tekrar bekleriz!"}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
