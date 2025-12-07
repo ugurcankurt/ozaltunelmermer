@@ -11,6 +11,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 1,
         },
         {
+            url: `${baseUrl}/yapay-zeka`,
+            lastModified: new Date(),
+            changeFrequency: "daily",
+            priority: 0.9,
+        },
+        {
             url: `${baseUrl}/#hizmetler`,
             lastModified: new Date(),
             changeFrequency: "monthly",
