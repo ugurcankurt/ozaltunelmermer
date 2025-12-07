@@ -104,9 +104,18 @@ export default function Header() {
                             key={link.href}
                             href={link.href}
                             onClick={() => setIsMenuOpen(false)}
-                            className="py-3 px-4 text-foreground hover:text-gold hover:bg-secondary/50 rounded-lg transition-colors"
+                            className={`py-3 px-4 rounded-lg transition-colors relative flex items-center gap-2 ${link.href === "/yapay-zeka"
+                                    ? "bg-purple-50 text-purple-700 font-bold"
+                                    : "text-foreground hover:text-gold hover:bg-secondary/50"
+                                }`}
                         >
+                            {link.href === "/yapay-zeka" && <Sparkles className="w-4 h-4" />}
                             {link.label}
+                            {link.href === "/yapay-zeka" && (
+                                <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full animate-pulse ml-auto">
+                                    YENİ
+                                </span>
+                            )}
                         </a>
                     ))}
                     <a
