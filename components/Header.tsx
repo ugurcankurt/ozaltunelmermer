@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, Sparkles } from "lucide-react";
 
 const navLinks = [
     { href: "#hizmetler", label: "Hizmetler" },
@@ -55,9 +55,18 @@ export default function Header() {
                             <a
                                 key={link.href}
                                 href={link.href}
-                                className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gold after:transition-all hover:after:w-full"
+                                className={`text-sm font-medium transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gold after:transition-all hover:after:w-full ${link.href === "/yapay-zeka"
+                                    ? "text-purple-600 hover:text-purple-700 font-bold flex items-center gap-1"
+                                    : "text-foreground/80 hover:text-gold"
+                                    }`}
                             >
+                                {link.href === "/yapay-zeka" && <Sparkles className="w-3 h-3" />}
                                 {link.label}
+                                {link.href === "/yapay-zeka" && (
+                                    <span className="absolute -top-3 -right-6 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">
+                                        YENİ
+                                    </span>
+                                )}
                             </a>
                         ))}
                     </nav>

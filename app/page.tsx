@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import AIPromo from "@/components/AIPromo"; // Added import
 import Services from "@/components/Services";
 import About from "@/components/About";
 import Gallery from "@/components/Gallery";
@@ -13,6 +14,7 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
+        <AIPromo /> {/* Added Promo Section */}
         <Services />
         <About />
         <Gallery />
