@@ -184,6 +184,8 @@ export default function AIVisualizer() {
         });
     };
 
+    const resultRef = useRef<HTMLDivElement>(null); // Ref for scrolling to result
+
     const handleProcess = async () => {
         if (!uploadedImage || !selectedStone) return;
 
@@ -231,6 +233,10 @@ export default function AIVisualizer() {
 
             if (data.generatedImage) {
                 setResultImage(data.generatedImage);
+                // Scroll to result on mobile
+                setTimeout(() => {
+                    resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 100);
             } else {
                 setResultImage(uploadedImage); // Fallback to original if no new image
             }
@@ -397,7 +403,10 @@ export default function AIVisualizer() {
 
                         {/* Result Preview */}
                         {resultImage && (
-                            <div className="bg-white rounded-2xl shadow-lg border border-border p-6">
+                            <div
+                                ref={resultRef}
+                                className="bg-white rounded-2xl shadow-lg border border-border p-6 scroll-mt-24"
+                            >
                                 <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
                                     <Sparkles className="w-5 h-5 text-gold" />
                                     AI Analizi - {selectedStoneName}
